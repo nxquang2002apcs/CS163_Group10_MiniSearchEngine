@@ -64,24 +64,25 @@ int searchEngine::convert(char key) {
 	}
 	switch (key) {
 	case 32:
-		key += 4;
+		key = 36;
 		break;
 	case 46:
-		key -= 9;
+		key = 37;
 		break;
 	case 35:
-		key += 3;
+		key = 38;
 		break;	
 	case 37:
-		key += 2;
+		key = 39;
 		break;
 	case 36:
-		key += 4;
+		key = 40;
 		break;
 	case 45:
-		key -= 4;
+		key = 41;
 		break;
 	}
+	return key;
 }
 
 string searchEngine::filter(string sen) {
