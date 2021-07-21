@@ -17,10 +17,10 @@ struct TrieNode {
 
 class searchEngine {
 public:
-	bool isNumber(char key);			//Quan
-	bool isAlphabet(char key);			//Quan
-	string intToString(int num);		//Quan
-	string floatToString(float num);	//Quan
+	bool isNumber(const string& str);			
+	bool isAlphabet(const string& str);			
+	string intToString(int num);		
+	string floatToString(float num);	
 	bool isAccepted(char key);			//Phat
 	int convert(char key);				//Phat
 	string filter(string sen);			//Phat
