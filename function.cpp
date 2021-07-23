@@ -6,7 +6,7 @@ TrieNode* searchEngine::createNode()
 	TrieNode* p = new TrieNode;
 	p->isTitle = p->isEndOfWord = false;
 
-	for (int i = 0; i < 41; ++i)
+	for (int i = 0; i < 42; ++i)
 		p->children[i] = nullptr;
 
 	return p;
@@ -116,15 +116,15 @@ string searchEngine::filter(string sen) {
 //===========================================================
 void searchEngine::inputFile(TrieNode*& root, ifstream& file)
 {
-	file.open("text.txt");
+	file.open("input.txt");
 	if (!file.is_open())
 	{
 		cout << "Can not open file" << endl;
 		return;
 	}
 
-	if (root == nullptr)
-		root = createNode();
+	root = createNode();
+
 	int pos = 1;
 	bool isTitle = true;
 
@@ -134,17 +134,14 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file)
 	isTitle = false;
 
 	string sen1, sen2;
-	int flag;
+	int flag = 0;
 	while (!file.eof())						// Insert vào các câu tiếp theo
 	{
 		getline(file, sen1, '.');
 		while (isNumber(sen1[sen1.length() - 1]))
 		{
 			if (!file.eof())
-			{
 				getline(file, sen2, '.');
-				
-			}
 			if (isNumber(sen2[0]))
 				sen1 = sen1 + "." + sen2;
 			else {
@@ -158,10 +155,11 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file)
 			insertSentence(root, sen2, pos, isTitle);
 			flag = 0;
 		}
-
 	}
+	file.close();
 }
-void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTitle)
+
+void searchEngine::insertWord(TrieNode* root, string word, int& pos, bool isTitle)
 {
 	int len = word.length();
 	int index;
@@ -171,11 +169,11 @@ void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTit
 	for (int i = 0; i < len; ++i)
 	{
 		index = convert(word[i]);
-		if (index == -1) 
+		if (index == -1)
 			continue;
-		if (cur->children[i] == nullptr)
-			cur->children[i] = createNode();
-		cur = cur->children[i];
+		if (cur->children[index] == nullptr)
+			cur->children[index] = createNode();
+		cur = cur->children[index];
 	}
 
 	cur->isEndOfWord = true;
@@ -183,19 +181,21 @@ void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTit
 	cur->pos.push_back(pos);
 	++pos;
 }
-void searchEngine::insertSentence(TrieNode*& root, string sen, int& pos, bool isTitle)
+
+
+void searchEngine::insertSentence(TrieNode* root, string sen, int& pos, bool isTitle)
 {
-	sen = filter(sen);
+	string sen1 = filter(sen);
 
 	stringstream spliter;
-	spliter << sen;
+	spliter << sen1;
 	string word;
 	while (!spliter.eof())
 	{
 		spliter >> word;
 		insertWord(root, word, pos, isTitle);
 	}
-} 
+}
 //===========================================================
 TrieNode* searchEngine::searchWord(TrieNode* root, string word, bool isTitle) {
 	if (!root) return nullptr;
