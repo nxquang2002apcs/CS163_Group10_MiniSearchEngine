@@ -1,6 +1,6 @@
 #include "function.h"
 
-bool searchEngine::isAccepted(char key) {
+bool searchEngine::isAccepted(char& key) {
 	// lowercase and numbers
 	if ((97 <= key && key <= 122) || (48 <= key && key <= 57)) 
 		return true;	
