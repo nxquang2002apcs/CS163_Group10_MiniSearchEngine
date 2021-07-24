@@ -27,12 +27,13 @@ public:
 	bool isAccepted(char& key);			//Phat
 	int convert(char key);				//Phat
 	string filter(string sen);			//Phat
-	void inputFile(TrieNode*& root, ifstream& file);							//Khanh
+	void inputFile(TrieNode*& root, ifstream& file, string path);							//Khanh
 	void insertSentence(TrieNode*& root, string sen, int& pos, bool isTitle);	//Khanh
 	void insertWord(TrieNode*& root, string word, int& pos, bool isTitle);		//Khanh
 	TrieNode* searchWord(TrieNode* root, string word, bool isTitle);
 	bool searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int> pos, int rankScore, string query);
 	void merge(vector<int>& vec1, vector<int> vec2);
+	void insertListOfFile(TrieNode**& list, ifstream& in);
 };
 
 #endif // !_SEARCH_ENGINE_H_
