@@ -1,8 +1,8 @@
 #include "function.h"
 
-void searchEngine::inputFile(TrieNode*& root, ifstream& file)
+void searchEngine::inputFile(TrieNode*& root, ifstream& file, string path)
 {
-	file.open("input.txt");
+	file.open(path);
 	if (!file.is_open())
 	{
 		cout << "Can not open file" << endl;
@@ -79,5 +79,20 @@ void searchEngine::insertSentence(TrieNode* root, string sen, int& pos, bool isT
 	{
 		spliter >> word;
 		insertWord(root, word, pos, isTitle);
+	}
+}
+
+void searchEngine::insertListOfFile(TrieNode**& list, ifstream& in)
+{
+	list = new TrieNode * [100];
+	for (int i = 0; i < 100; ++i)
+		list[i] = nullptr;
+	
+	string path = "Data";						// Ví dụ các văn bản đặt trong folder Data, có tên là text1, text2,...
+
+	for (int i = 0; i < 100; ++i)
+	{
+		path += "\\text" + intToString(i + 1) + ".txt";
+		inputFile(list[i], in, path);
 	}
 }
