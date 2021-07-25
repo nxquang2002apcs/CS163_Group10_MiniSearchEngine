@@ -20,27 +20,23 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file, string path)
 	isTitle = false;
 
 	string sen1, sen2;
-	int flag = 0;
 	while (!file.eof())						// Insert vào các câu tiếp theo
 	{
 		getline(file, sen1, '.');
 		while (isNumber(sen1[sen1.length() - 1]))
 		{
 			if (!file.eof())
+			{
 				getline(file, sen2, '.');
-			if (isNumber(sen2[0]))
-				sen1 = sen1 + "." + sen2;
-			else {
-				flag = 1;
-				break;
+				if (isNumber(sen2[0]))
+					sen1 = sen1 + "." + sen2;
+				else {
+					insertSentence(root, sen1, pos, isTitle);
+					sen1 = sen2;
+				}
 			}
 		}
 		insertSentence(root, sen1, pos, isTitle);
-		if (flag == 1)
-		{
-			insertSentence(root, sen2, pos, isTitle);
-			flag = 0;
-		}
 	}
 	file.close();
 }
