@@ -190,9 +190,8 @@ void searchEngine::insertSentence(TrieNode* root, string sen, int& pos, bool isT
 	stringstream spliter;
 	spliter << sen1;
 	string word;
-	while (!spliter.eof())
+	while (spliter >> word)
 	{
-		spliter >> word;
 		insertWord(root, word, pos, isTitle);
 	}
 }
