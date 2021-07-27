@@ -59,7 +59,8 @@ void searchEngine::insertWord(TrieNode* root, string word, int& pos, bool isTitl
 	}
 
 	cur->isEndOfWord = true;
-	cur->isTitle = isTitle;
+	if (cur->isTitle == false)
+		cur->isTitle = isTitle;
 	cur->pos.push_back(pos);
 	++pos;
 }
