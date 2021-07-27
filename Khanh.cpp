@@ -41,7 +41,7 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file, string path)
 	file.close();
 }
 
-void searchEngine::insertWord(TrieNode* root, string word, int& pos, bool isTitle)
+void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTitle)
 {
 	int len = word.length();
 	int index;
@@ -65,7 +65,7 @@ void searchEngine::insertWord(TrieNode* root, string word, int& pos, bool isTitl
 	++pos;
 }
 
-void searchEngine::insertSentence(TrieNode* root, string sen, int& pos, bool isTitle)
+void searchEngine::insertSentence(TrieNode*& root, string sen, int& pos, bool isTitle)
 {
 	string sen1 = filter(sen);
 
