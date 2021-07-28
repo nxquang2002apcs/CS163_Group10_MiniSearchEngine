@@ -3,5 +3,11 @@ data base
 big data
 my shoe is nike
 i'm bad at math
-
-
+google is the best search engine ever
+facebook get users data
+usa monetary policy
+overfit is useful for pretrain data
+support vector machine
+data structure algorithm
+database
+quantumn entanglement is conflict with relative theory

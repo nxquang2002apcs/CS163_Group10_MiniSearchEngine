@@ -30,7 +30,8 @@ void historySuggestion(string query, vector<string>& his) {
 				}
 			}
 			if (flag == 1) {
-				cout  << sen << endl;
+				cout  << order++ << ". " << sen << endl;
+				his.push_back(sen);
 			}
 			getline(fin, sen);
 			spliter.str("");
