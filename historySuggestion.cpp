@@ -2,7 +2,10 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sstream>
 using namespace std;
+
+
 
 void historySuggestion(string query, vector<string>& his) {
 	ifstream fin;
@@ -14,13 +17,24 @@ void historySuggestion(string query, vector<string>& his) {
 		cout << "Can't create file" << endl;
 	else {
 		getline(fin, sen);
+		stringstream spliter;
 		while(!fin.eof()) {
-			size_t found = sen.find(query); 
-			if (found != string::npos) {
-				cout << order <<". "<< sen << endl;
-				order++;
-			}	
+			spliter << query;
+			string word;
+			int flag = 1;
+			while (spliter >> word) {
+				size_t found = sen.find(word); 
+				if (found == string::npos) {
+					flag = -1;
+					break;
+				}
+			}
+			if (flag == 1) {
+				cout  << sen << endl;
+			}
 			getline(fin, sen);
+			spliter.str("");
+			spliter.clear();
 		}
 	}
 	fin.close();
