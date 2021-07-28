@@ -1,4 +1,4 @@
-#include "function.h"
+#include "Function.h"
 
 
 TrieNode* searchEngine::createNode()
@@ -114,22 +114,24 @@ string searchEngine::filter(string sen) {
 	return res;
 }
 //===========================================================
-void searchEngine::inputFile(TrieNode*& root, ifstream& file)
+void searchEngine::inputFile(TrieNode*& root, ifstream& file, string path)
 {
-	file.open("input.txt");
+	file.open(path);
 	if (!file.is_open())
 	{
 		cout << "Can not open file" << endl;
 		return;
 	}
-
+	else {
+		cout << "Open successfully!" << endl;
+	}
 	root = createNode();
 
 	int pos = 1;
 	bool isTitle = true;
 
 	string sen;
-	getline(file, sen);
+	getline(file, sen,'.');
 	insertSentence(root, sen, pos, isTitle); // Lấy vào dòng đầu tiên là tiêu đề
 	isTitle = false;
 
@@ -137,7 +139,7 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file)
 	while (!file.eof())						// Insert vào các câu tiếp theo
 	{
 		getline(file, sen1, '.');
-		while (isNumber(sen1[sen1.length() - 1]))
+		while (isNumber(sen1.back()))
 		{
 			if (!file.eof())
 			{
@@ -154,7 +156,6 @@ void searchEngine::inputFile(TrieNode*& root, ifstream& file)
 	}
 	file.close();
 }
-
 void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTitle)
 {
 	int len = word.length();
@@ -173,24 +174,24 @@ void searchEngine::insertWord(TrieNode*& root, string word, int& pos, bool isTit
 	}
 
 	cur->isEndOfWord = true;
-	cur->isTitle = isTitle;
+	if(cur->isTitle == false)
+		cur->isTitle = isTitle;
 	cur->pos.push_back(pos);
 	++pos;
 }
-
-
 void searchEngine::insertSentence(TrieNode*& root, string sen, int& pos, bool isTitle)
 {
-	string sen1 = filter(sen);
+	sen = filter(sen);
 
 	stringstream spliter;
-	spliter << sen1;
+	spliter << sen;
 	string word;
-	while (spliter >> word)
+	while (!spliter.eof())
 	{
+		spliter >> word;
 		insertWord(root, word, pos, isTitle);
 	}
-}
+} 
 //===========================================================
 TrieNode* searchEngine::searchWord(TrieNode* root, string word, bool isTitle) {
 	if (!root) return nullptr;
@@ -203,31 +204,41 @@ TrieNode* searchEngine::searchWord(TrieNode* root, string word, bool isTitle) {
 	}
 	if (pCur != nullptr) {
 		if (pCur->isEndOfWord == false)	return nullptr;
-		else if (pCur->isTitle != isTitle) return nullptr;
+		else if (isTitle == true && pCur->isTitle == false) return nullptr;
 		else return pCur;
 	}
 	return nullptr;
 }
-bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int> pos, int rankScore, string query) {
+bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int>& pos, int& rankScore, string query) {
 	stringstream sstream;
 	sstream << query;
 	string word;
+	bool isTitle = false;	//to activate intitle:
 	while (sstream >> word) {
 		TrieNode* search;
-		if (word[0] = '-') {
-			string temp = word.substr(1);
-			if (searchWord(root, temp, false) != nullptr) return false;	 //University -science => if find "science" in Trie => false
+		if (word[0] == '"') {
+			string nextWord = word.substr(1);
+			search = searchWord(root, nextWord, isTitle);
+			if (!search) return false;
+			else {
+				vector<vector<int>> matchPos;
+			}
+		}
+		if (word[0] == '-') {
+			string nextWord = word.substr(1);
+			if (searchWord(root, nextWord, isTitle) != nullptr) return false;	 //University -science => if find "science" in Trie => false
 			continue;
 		}
 		if (word == "OR") {
 			sstream >> word;
-			search = searchWord(root, word, false);
+			search = searchWord(root, word, isTitle);
 			if (search) {
 				merge(pos, search->pos);
 				rankScore += search->pos.size();
 			}
 			continue;
-		}
+		} 
+		/*
 		if (word == "AND") {
 			if (pos.size() == 0) return false;		//A AND B but cannot find A => false
 			sstream >> word;
@@ -238,9 +249,61 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 				rankScore += search->pos.size();
 			}
 			continue;
+		}*/
+		if (word == "AND") continue;			//default is AND, so don't need to check this operator
+		//if (searchWord(stopwordRoot, word, false) != nullptr) continue;
+		if (word.substr(0,8) == "intitle:") {
+			string nextWord = word.substr(8);
+			search = searchWord(root, nextWord, true);
+			if (!search) return false;
+			else {
+				rankScore += search->pos.size();
+				merge(pos, search->pos);
+				isTitle = true;
+			}
+			continue;
 		}
-		if (searchWord(stopwordRoot, word, false) != nullptr) continue;
+		if (word.substr(0, 9) == "filetype:") {
+			string extension = word.substr(9);
+			if (extension != "txt")
+				return false;
+			else continue;
+		}
+		search = searchWord(root, word, isTitle);
+		if (search) {							//Nếu tìm thấy từ trong Trie
+			rankScore += search->pos.size();
+			merge(pos, search->pos);
+		}
+		else {									
+			bool find = false;
+			while (sstream >> word) {
+				if (word == "OR") {				//Nếu từ đó không được tìm thấy mà có OR ở kế bên thì tiếp tục xét từ tiếp theo
+					sstream >> word;			//Ví dụ: slknvsknejpojwef OR cat
+					search = searchWord(root, word, isTitle);
+					if (search == nullptr)		//Nếu từ tiếp theo vẫn không tìm thấy thì vẫn tiếp tục kiểm tra OR có ở tiếp theo hay không
+						continue;	
+					else {						
+						rankScore += search->pos.size();
+						merge(pos, search->pos);
+						find = true;			//Có ít nhất một từ vẫn được tìm thấy
+					}
+				}
+				else {
+					if (find) {
+						search = searchWord(root, word, isTitle);
+						if (search) {
+							rankScore += search->pos.size();
+							merge(pos, search->pos);
+						}
+						else find = false;
+					}
+					else return false;
+				}
+			}
+			if (find == false) return false;	//Trong tất cả những từ vô nghĩa, có ít nhất một từ có thể tìm thấy
+		}										//Ví dụ: oigwoijowijgoijwgi OR phone OR viosnionione
 	}
+	return true;
 }
 void searchEngine::merge(vector<int>& vec1, vector<int> vec2) {		//Function to merge the two vector 
 	if (vec1.size() == 0) { vec1 = vec2; return; }
@@ -266,4 +329,29 @@ void searchEngine::merge(vector<int>& vec1, vector<int> vec2) {		//Function to m
 	for (; j < vec2.size(); ++j) res.push_back(vec2[j]);
 	vec1.clear();
 	vec1 = res;
+}
+void searchEngine::releaseTrie(TrieNode*& root) {
+	if (root == nullptr) return;
+	for (int i = 0; i < 42; ++i) {
+		releaseTrie(root->children[i]);
+	}
+	delete root;
+	root = nullptr;
+}
+void searchEngine::match(vector<int>& vec1, vector<int>& vec2) {
+	if (vec1.empty() || vec2.empty()) return;
+	vector<int> res1, res2;
+	int i = 0, j = 0;
+	while (i < vec1.size() && j < vec2.size()) {
+		if (vec1[i] + 1 < vec2[j]) i++;
+		else if (vec1[i] + 1 > vec2[j]) j++;
+		else {
+			res1.push_back(vec1[i]);
+			res2.push_back(vec2[j]);
+		}
+	}
+	vec1.clear();
+	vec2.clear();
+	vec1 = res1;
+	vec2 = res2;
 }
