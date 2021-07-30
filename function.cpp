@@ -1,4 +1,4 @@
-#include "Function.h"
+#include "function.h"
 
 
 TrieNode* searchEngine::createNode()
@@ -217,12 +217,105 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 	while (sstream >> word) {
 		TrieNode* search;
 		if (word[0] == '"') {
+			vector<vector<int>> matchPos;
+			int len = 0;
+			bool stop = false;
 			string nextWord = word.substr(1);
+			if (nextWord.back() == '"') {
+				nextWord.erase(nextWord.end() - 1);
+				stop = true;
+			}
+
 			search = searchWord(root, nextWord, isTitle);
 			if (!search) return false;
 			else {
-				vector<vector<int>> matchPos;
+				matchPos.push_back(search->pos);
+				len++;
+				while (!stop && sstream >> nextWord) {
+					if (nextWord == "") {
+						stop = true;
+						break;
+					}
+					else if (nextWord.back() == '"') {
+						nextWord.erase(nextWord.end() - 1);
+						stop = true;
+					}
+					search = searchWord(root, nextWord, isTitle);
+					if (!search) return false;
+					matchPos.push_back(search->pos);
+					len++;
+				}
 			}
+			if (stop) {
+				if (len <= 1) {
+					merge(pos, matchPos[0]);
+					rankScore += matchPos[0].size();
+				}
+				else {
+					for (int i = 0; i < len-1; ++i) 
+						match(matchPos[i], matchPos[i + 1], 0);
+					for (int i = len - 1; i > 0; --i) 
+						match(matchPos[i-1], matchPos[i], 0);
+					for (int i = 0; i < len; ++i) {
+						if (matchPos[i].empty()) {
+							rankScore = 0;
+							return false;
+						}
+						merge(pos, matchPos[i]);
+						rankScore += matchPos[i].size();
+					}
+				}
+			}
+			continue;
+		}
+		pair<int,int> asterisk = findAsterisk(query);	
+		if(asterisk.second != 0){									//Number of wildcards != 0
+			vector<vector<int>> matchPos;
+			int len = 0;
+			if (word != "*") {
+				search = searchWord(root, word, isTitle);
+				if (!search) return false;
+				else {
+					int pivot = 0; //to note where the first "*" appear
+					matchPos.push_back(search->pos);
+					len++;
+					while (sstream >> word) {
+						if (word == "*") continue;
+						search = searchWord(root, word, isTitle);
+						if (!search) {
+							rankScore = 0;
+							return false;
+						}
+						else {
+							matchPos.push_back(search->pos);
+							len++;
+						}
+					}
+					if (len == 1) {
+						merge(pos, matchPos[0]);
+						rankScore += matchPos[0].size();
+					}
+					else {
+						for (int i = 0; i < len - 1; ++i)
+							if (i + 1 == asterisk.first)
+								match(matchPos[i], matchPos[i + 1], asterisk.second);
+							else match(matchPos[i], matchPos[i + 1], 0);
+						for (int i = len - 1; i > 0; --i)
+							if (i == asterisk.first)
+								match(matchPos[i - 1], matchPos[i], asterisk.second);
+							else match(matchPos[i - 1], matchPos[i], 0);
+						for (int i = 0; i < len; ++i) {
+							if (matchPos[i].empty()) {
+								rankScore = 0;
+								return false;
+							}
+							merge(pos, matchPos[i]);
+							rankScore += matchPos[i].size();
+						}
+					}
+				}
+			}
+			continue;
 		}
 		if (word[0] == '-') {
 			string nextWord = word.substr(1);
@@ -261,6 +354,13 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 				merge(pos, search->pos);
 				isTitle = true;
 			}
+			/*
+			while (sstream >> word) {
+				search = searchWord(root, word, true);
+				if (search == nullptr) return false;
+				rankScore += search->pos.size();
+				merge(pos, search->pos);
+			}*/
 			continue;
 		}
 		if (word.substr(0, 9) == "filetype:") {
@@ -297,11 +397,17 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 						}
 						else find = false;
 					}
-					else return false;
+					else {
+						rankScore = 0;
+						return false;
+					}
 				}
 			}
-			if (find == false) return false;	//Trong tất cả những từ vô nghĩa, có ít nhất một từ có thể tìm thấy
-		}										//Ví dụ: oigwoijowijgoijwgi OR phone OR viosnionione
+			if (find == false) {				//Trong tất cả những từ vô nghĩa, có ít nhất một từ có thể tìm thấy
+				rankScore = 0;					//Ví dụ: oigwoijowijgoijwgi OR phone OR viosnionione
+				return false;
+			}	
+		}										
 	}
 	return true;
 }
@@ -338,20 +444,38 @@ void searchEngine::releaseTrie(TrieNode*& root) {
 	delete root;
 	root = nullptr;
 }
-void searchEngine::match(vector<int>& vec1, vector<int>& vec2) {
+void searchEngine::match(vector<int>& vec1, vector<int>& vec2, int asterisk) {
 	if (vec1.empty() || vec2.empty()) return;
 	vector<int> res1, res2;
 	int i = 0, j = 0;
 	while (i < vec1.size() && j < vec2.size()) {
-		if (vec1[i] + 1 < vec2[j]) i++;
-		else if (vec1[i] + 1 > vec2[j]) j++;
+		if (vec1[i] + asterisk + 1 < vec2[j]) i++;
+		else if (vec1[i] + asterisk + 1 > vec2[j]) j++;
 		else {
-			res1.push_back(vec1[i]);
-			res2.push_back(vec2[j]);
+			res1.push_back(vec1[i++]);
+			res2.push_back(vec2[j++]);
 		}
 	}
 	vec1.clear();
 	vec2.clear();
 	vec1 = res1;
 	vec2 = res2;
+}
+pair<int,int> searchEngine::findAsterisk(string query) {
+	stringstream ss;
+	int count = 0;
+	ss << query;
+	string word;
+	int index = 0;
+	bool check = false;
+	while (ss >> word) {
+		if (word == "*") {
+			count++;
+			check = true;
+		}
+		if (!check) index++;		//If '*' appear, don't need to find the index of "*" anymore
+	}
+	
+	if (count == 0) index = -1;
+	return { index, count };		//The first is the index where '*' appear, and the second is the number of '*'
 }

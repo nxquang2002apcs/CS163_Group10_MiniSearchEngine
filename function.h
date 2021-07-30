@@ -34,7 +34,8 @@ public:
 	bool searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int>& pos, int& rankScore, string query);	//Quang
 	void merge(vector<int>& vec1, vector<int> vec2);	//Quang
 	void releaseTrie(TrieNode*& root);					//Quang
-	void match(vector<int>& vec1, vector<int>& vec2);	//Quang
+	void match(vector<int>& vec1, vector<int>& vec2, int asterisk);	//Quang
+	pair<int,int> findAsterisk(string query);
 };
 
 #endif // !_SEARCH_ENGINE_H_
