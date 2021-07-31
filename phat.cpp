@@ -43,6 +43,10 @@ void searchEngine::findRange(string query, double& low, double& high) {
 	ss2 << num2;
 	ss2 >> high;
 }
+void deleteFile(ofstream& ofs, string path) {
+	ofs.open(path);
+	ofs.close();
+}
 
 
 
