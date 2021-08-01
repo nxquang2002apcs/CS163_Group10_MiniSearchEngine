@@ -44,4 +44,17 @@ void searchEngine::insertStopWord(TrieNode*& stopword, string word)
 	}
 	cur->isEndOfWord = true;
 }
+void searchEngine::readFileStopWord(TrieNode*& stopword, ifstream fin, string path) {
+	fin.open(path);
+	if (!fin.is_open()) 
+		cout << "Can not open file" << endl;
+	else {
+		string word;
+		while (!fin.eof()) {
+			getline(fin, word);
+			insertStopWord(stopword, word);
+		}
+	}
+	fin.close();
+}
 
