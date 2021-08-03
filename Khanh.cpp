@@ -93,15 +93,124 @@ void searchEngine::insertListOfFile(TrieNode**& list, ifstream& in)
 	}
 }
 
-void tieude()
+void tieude(int& choice)
 {
-	TextColor(10);
-	gotoXY(0, 11);
-	cout << "MMMMM         MMMMM IIII NNNNN     NNNN IIII      SSSSSSSS   EEEEEEEEE      AAAA       RRRRRRRRRR  CCCCCCCCCC HHHH    HHHH     EEEEEEEEE NNNNN     NNNN   GGGGGGGGGG IIII NNNNN     NNNN EEEEEEEEE" << endl;
-	cout << "MMMMMMM     MMMMMMM IIII NNNNNN    NNNN IIII     SSSSSSSSSSS EEEE          AA  AAA     RRR   RRR CCCCCCCCCCCC HHHH    HHHH     EEEE      NNNNNN    NNNN GGGGGGGGGGGG IIII NNNNNN    NNNN EEEE" << endl;
-	cout << "MMMMMMMM   MMMMMMMM IIII NNNNNNNN  NNNN IIII       SSSSS     EEEEEEEEE    AA    AAA    RRRRRR    CCCC         HHHHHHHHHHHH     EEEEEEEEE NNNNNNNN  NNNN GGGG         IIII NNNNNNNN  NNNN EEEEEEEEE" << endl;
-	cout << "MMMM   MMMMM   MMMM IIII NNNN  NNN NNNN IIII         SSSSS   EEEEEEEEE   AAAAAAAAAAA   RRR RRR   CCCC         HHHHHHHHHHHH     EEEEEEEEE NNNN  NNN NNNN GGGG   GGGGG IIII NNNN  NNN NNNN EEEEEEEEE" << endl;
-	cout << "MMMM    MMM    MMMM IIII NNNN   NNNNNNN IIII        SSSSSSSS EEEE       AA        AAA  RRR  RRR  CCCCCCCCCCCC HHHH    HHHH     EEEE      NNNN    NNNNNN GGGGGGGGGGGG IIII NNNN    NNNNNN EEEE" << endl;
-	cout << "MMMM     M     MMMM IIII NNNN     NNNNN IIII    SSSSSSSSSSS  EEEEEEEEE AA          AAA RRR   RRRR  CCCCCCCCCC HHHH    HHHH     EEEEEEEEE NNNN      NNNN    GGGGGGGGG IIII NNNN      NNNN EEEEEEEEE" << endl;
+	choice = 3;
 
+	while (choice != 1 && choice != 2)
+	{
+		system("cls");
+		TextColor(10);
+		gotoXY(5, 5);
+		cout << "  SSSSSSS EEEEEEE     AAA     RRRRRRR  CCCCCCC HH    HH     EEEEEEE NNN   NN  GGGGGGG II NNN   NN EEEEEEE";
+		gotoXY(5, 6);
+		cout << "SSSSSSSS  EE         AA AA    RR  RR  CCCCCCCC HH    HH     EE      NNNN  NN GG       II NNNN  NN EE";
+		gotoXY(5, 7);
+		cout << "   SSS    EEEEEEE   AAAAAAA   RRRRR   CC       HHHHHHHH     EEEEEEE NN NN NN GG  GGGG II NN NN NN EEEEEEE";
+		gotoXY(5, 8);
+		cout << "  SSSSSSS EE       AA     AA  RR  RR  CCCCCCCC HH    HH     EE      NN  NNNN GG    GG II NN  NNNN EE";
+		gotoXY(5, 9);
+		cout << "SSSSSSSS  EEEEEEE AA       AA RR   RR  CCCCCCC HH    HH     EEEEEEE NN   NNN  GGGGGGG II NN   NNN EEEEEEE";
+
+		gotoXY(35, 12);
+		cout << char(201);
+		for (int i = 0; i < 40; ++i)
+			cout << char(205);
+		cout << char(187);
+
+
+
+		gotoXY(35, 13); cout << char(186);
+		gotoXY(76, 13); cout << char(186);
+
+		gotoXY(35, 14);
+		cout << char(186) << "         1. Search";
+		gotoXY(76, 14); cout << char(186);
+
+		gotoXY(35, 15); cout << char(186);
+		gotoXY(76, 15); cout << char(186);
+
+		gotoXY(35, 16);
+		cout << char(186) << "         2. View History";
+		gotoXY(76, 16); cout << char(186);
+
+		gotoXY(35, 17); cout << char(186);
+		gotoXY(76, 17); cout << char(186);
+
+		gotoXY(35, 18);
+		cout << char(200);
+		for (int i = 0; i < 40; ++i)
+			cout << char(205);
+		cout << char(188);
+
+		gotoXY(30, 20);
+		cout << "Enter your choice (1 or 2): ";
+		cin >> choice;
+
+	}
+}
+
+void search(int& choice)				// Khi lựa chọn là search thì gọi hàm này để cho chọn tiếp là search hay based on history suggestion
+{
+	choice = 3;
+
+	while (choice != 1 && choice != 2)
+	{
+		system("cls");
+		gotoXY(35, 0);
+		cout << char(201);
+		for (int i = 0; i < 40; ++i)
+			cout << char(205);
+		cout << char(187);
+
+		gotoXY(35, 1); cout << char(186);
+		gotoXY(76, 1); cout << char(186);
+
+		gotoXY(35, 2);
+		cout << char(186) << " 1. Search";
+		gotoXY(76, 2); cout << char(186);
+
+		gotoXY(35, 3); cout << char(186);
+		gotoXY(76, 3); cout << char(186);
+
+		gotoXY(35, 4);
+		cout << char(186) << " 2. Search based on history suggestion";
+		gotoXY(76, 4); cout << char(186);
+
+		gotoXY(35, 5); cout << char(186);
+		gotoXY(76, 5); cout << char(186);
+
+		gotoXY(35, 6);
+		cout << char(200);
+		for (int i = 0; i < 40; ++i)
+			cout << char(205);
+		cout << char(188);
+
+		gotoXY(30, 8);
+		cout << "Enter your choice (1 or 2): ";
+		cin >> choice;
+	}
+}
+
+void readInQuery(string& query)
+{
+	gotoXY(15, 2);
+	cout << char(218);
+	for (int i = 0; i < 86; ++i)
+		cout << char(196);
+	cout << char(191);
+
+	gotoXY(15, 3); cout << char(179);
+	gotoXY(102, 3); cout << char(179);
+
+	gotoXY(15, 4);
+	cout << char(192);
+	for (int i = 0; i < 86; ++i)
+		cout << char(196);
+	cout << char(217);
+
+	gotoXY(17, 3);
+	cout << "Enter query: ";
+	cin.ignore();
+	gotoXY(30, 3);  getline(cin, query);
 }
