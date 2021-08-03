@@ -153,6 +153,7 @@ void tieude(int& choice)
 void search(int& choice)				// Khi lựa chọn là search thì gọi hàm này để cho chọn tiếp là search hay based on history suggestion
 {
 	choice = 3;
+	TextColor(14);
 
 	while (choice != 1 && choice != 2)
 	{
@@ -194,6 +195,7 @@ void search(int& choice)				// Khi lựa chọn là search thì gọi hàm này 
 
 void readInQuery(string& query)
 {
+	TextColor(15);
 	gotoXY(15, 2);
 	cout << char(218);
 	for (int i = 0; i < 86; ++i)
