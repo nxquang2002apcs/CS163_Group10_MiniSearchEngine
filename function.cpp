@@ -1,5 +1,5 @@
-#include "function.h"
-
+#include "Function.h"
+#include "ConsoleManagement.h"
 
 TrieNode* searchEngine::createNode()
 {
@@ -63,7 +63,6 @@ bool searchEngine::isAccepted(char& key) {
 		return true;
 	return false;
 }
-
 int searchEngine::convert(char key) {
 	if (key >= 48 && key <= 57) {
 		key -= 48;
@@ -189,9 +188,18 @@ void searchEngine::insertSentence(TrieNode*& root, string sen, int& pos, bool is
 	while (!spliter.eof())
 	{
 		spliter >> word;
+		if (word == "s") continue;
 		insertWord(root, word, pos, isTitle);
 	}
 } 
+void searchEngine::releaseTrie(TrieNode*& root) {
+	if (root == nullptr) return;
+	for (int i = 0; i < 42; ++i) {
+		releaseTrie(root->children[i]);
+	}
+	delete root;
+	root = nullptr;
+}
 //===========================================================
 TrieNode* searchEngine::searchWord(TrieNode* root, string word, bool isTitle) {
 	if (!root) return nullptr;
@@ -266,6 +274,24 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 					}
 				}
 			}
+			continue;
+		}
+		if (word.substr(0, 8) == "intitle:") {
+			string nextWord = word.substr(8);
+			search = searchWord(root, nextWord, true);
+			if (!search) return false;
+			else {
+				rankScore += search->pos.size();
+				merge(pos, search->pos);
+				isTitle = true;
+			}
+			/*
+			while (sstream >> word) {
+				search = searchWord(root, word, true);
+				if (search == nullptr) return false;
+				rankScore += search->pos.size();
+				merge(pos, search->pos);
+			}*/
 			continue;
 		}
 		pair<int,int> asterisk = findAsterisk(query);	
@@ -345,22 +371,24 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 		}*/
 		if (word == "AND") continue;			//default is AND, so don't need to check this operator
 		//if (searchWord(stopwordRoot, word, false) != nullptr) continue;
-		if (word.substr(0,8) == "intitle:") {
-			string nextWord = word.substr(8);
-			search = searchWord(root, nextWord, true);
-			if (!search) return false;
-			else {
-				rankScore += search->pos.size();
-				merge(pos, search->pos);
-				isTitle = true;
+		if (word.find("..") != string::npos) {
+			if (word[0] != '$' && !isNumber(word[0]))
+				return false;
+			double low = 0.0, high = 0.0;
+			findRange(word, low, high);
+			if (low == 0 && high == 0) return false;
+			vector<int> numPos;
+			double num = 0;
+			if (word[0] == '$') {
+				if (!root->children[40]) return false;
+				searchNumber_DFS(root->children[40], low, high, num, 1, numPos);
 			}
-			/*
-			while (sstream >> word) {
-				search = searchWord(root, word, true);
-				if (search == nullptr) return false;
-				rankScore += search->pos.size();
-				merge(pos, search->pos);
-			}*/
+			else searchNumber_DFS(root, low, high, num, 1, numPos);
+			if (numPos.empty()) return false;
+			else {
+				merge(pos, numPos);
+				rankScore += numPos.size();
+			}
 			continue;
 		}
 		if (word.substr(0, 9) == "filetype:") {
@@ -368,6 +396,18 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 			if (extension != "txt")
 				return false;
 			else continue;
+		}
+		if (word[0] == '~') {
+			vector<string> syno;
+			Synonyms(word.substr(1), syno);
+			for (int i = 0; i < syno.size(); ++i) {
+				search = searchWord(root, syno[i], isTitle);
+				if (search) {
+					merge(pos, search->pos);
+					rankScore += search->pos.size();
+				}
+			}
+			continue;
 		}
 		search = searchWord(root, word, isTitle);
 		if (search) {							//Nếu tìm thấy từ trong Trie
@@ -411,6 +451,7 @@ bool searchEngine::searchTrie(TrieNode* root, TrieNode* stopwordRoot, vector<int
 	}
 	return true;
 }
+//=========================================================================================================================
 void searchEngine::merge(vector<int>& vec1, vector<int> vec2) {		//Function to merge the two vector 
 	if (vec1.size() == 0) { vec1 = vec2; return; }
 	if (vec2.size() == 0) return;
@@ -435,14 +476,6 @@ void searchEngine::merge(vector<int>& vec1, vector<int> vec2) {		//Function to m
 	for (; j < vec2.size(); ++j) res.push_back(vec2[j]);
 	vec1.clear();
 	vec1 = res;
-}
-void searchEngine::releaseTrie(TrieNode*& root) {
-	if (root == nullptr) return;
-	for (int i = 0; i < 42; ++i) {
-		releaseTrie(root->children[i]);
-	}
-	delete root;
-	root = nullptr;
 }
 void searchEngine::match(vector<int>& vec1, vector<int>& vec2, int asterisk) {
 	if (vec1.empty() || vec2.empty()) return;
@@ -478,4 +511,194 @@ pair<int,int> searchEngine::findAsterisk(string query) {
 	
 	if (count == 0) index = -1;
 	return { index, count };		//The first is the index where '*' appear, and the second is the number of '*'
+}
+//=========================================================================================================================
+void searchEngine::findRange(string query, double& low, double& high) {
+	int start, end;
+	size_t found = query.find("..");
+	size_t check = query.find("..$");
+	// high 
+	if (check != string::npos)
+		found += 3;
+	else
+		found += 2;
+	end = found;
+	while (query[end] != 32 && query[end]) {
+		end++;
+	}
+	string num1 = query.substr(found, end - found);
+	stringstream ss1, ss2;
+	ss1 << num1;
+	ss1 >> high;
+	// low
+	if (check != string::npos)
+		found -= 3;
+	else
+		found -= 2;
+	start = found - 1;
+	while (query[start] != '$' && query[start] != 32 && start)
+		start--;
+	if (query[start] == '$' || query[start] == 32)
+		start += 1;
+
+	string num2 = query.substr(start, found - start);
+	ss2 << num2;
+	ss2 >> low;
+}
+void searchEngine::searchNumber_DFS(TrieNode* root, double low, double high, double num, int power, vector<int>& pos) {
+ 	if (num > high) return;
+	else if (num >= low && num <= high && root->isEndOfWord == true) {
+		merge(pos, root->pos);
+	}
+	int temp;
+	for (int i = 0; i <= 9; ++i) {
+		temp = num;
+		if (root->children[i]) {
+			if (power == 1)
+				temp = temp * 10 + i;
+			else {
+				temp += i * pow(10, power);
+				power--;
+			}
+			searchNumber_DFS(root->children[i], low, high, temp,power, pos);
+		}
+	}
+	if (root->children[37]) {
+		temp = num;
+		power = -1;
+		searchNumber_DFS(root->children[37], low, high, temp, power, pos);
+	}
+}
+//=========================================================================================================================
+void searchEngine::Synonyms(string key, vector<string>& syno) {
+	syno.push_back(key);
+	ifstream in;
+	in.open("Gutenberg.txt");
+	if (!in.is_open()) return;
+	string sen, word;
+	while (!in.eof()) {
+		getline(in, sen);
+		stringstream sstream;
+		sstream << sen;
+		sstream >> word;
+		if (word != "KEY:") continue;
+		else {
+			sstream >> word;
+			if (word[0] >= 65 && word[0] <= 90) word[0] += 32;
+			if (!isAlphabet(word.back())) word.pop_back();
+			if (word != key) continue;
+			else {
+				getline(in, sen);
+				while (sen.back() == ',') {
+					string nextSen;
+					getline(in, nextSen);
+					sen += ' ' + nextSen;
+				}
+				sstream.clear();
+				sstream << sen;
+				sstream >> word;
+				if (word != "SYN:") continue;
+				while (sstream >> word) {
+					if (word == "[See") {
+						sstream >> word;
+						while (isAlphabet(word.back())) 
+							word.pop_back();
+						if (word != "") {
+							for (int i = 0; i < word.size(); ++i)
+								word[i] += 32;
+						}
+						continue;
+					}
+					if (!isAlphabet(word[0])) continue;
+					else if (word[0] >= 65 && word[0] <= 90) word[0] += 32;
+					if (!isAlphabet(word.back())) word.pop_back();
+					syno.push_back(word);
+				}
+			}
+		}
+	}
+}
+//=========================================================================================================================
+int searchEngine::countWord(string sen) {	//Function to count the number of words in a sentence
+	stringstream ss;
+	ss << sen;
+	string word;
+	int count = 0;
+	while (ss >> word)
+		count++;
+	return count;
+}
+void searchEngine::display(File file) {
+	if (file.score == 0 || file.pos.empty())
+		return;
+	ifstream in;
+	in.open(file.name);
+	if (!in.is_open()) {
+		cout << "Cannot open file!" << endl;
+		return;
+	}
+	string sen, sen2, word;
+	int count = 1, idxOfPos = 0, totalLength = 0;
+	getline(in, sen, '.');	//title
+
+	int length = countWord(sen);
+	totalLength += length;
+	if (totalLength >= file.pos[idxOfPos]) {
+		stringstream sstream;
+		sstream << sen;
+		while (sstream >> word) {
+			if (idxOfPos < file.pos.size() && count == file.pos[idxOfPos]) {
+				TextColor(14);
+				cout << word << " ";
+				TextColor(15);
+				idxOfPos++;
+			}
+			else cout << word << " ";
+			count++;
+		}
+	}
+	else {
+		cout << sen;
+		count += length;
+	}
+	cout << endl << endl;
+	while (!in.eof() && idxOfPos < file.pos.size()){
+		getline(in, sen, '.');
+		while (isNumber(sen.back())){
+			if (!in.eof()){
+				getline(in, sen2, '.');
+				if (isNumber(sen2[0]))
+					sen = sen + "." + sen2;
+				else {
+					sen = sen + " " + sen2;
+				}
+			}
+		}
+		length = countWord(sen);
+		totalLength += length;
+		if (totalLength < file.pos[idxOfPos]) {
+			count += length;
+			continue;
+		}
+		else {
+			cout << "...";
+			stringstream sstream;
+			sstream << sen;
+			while (sstream >> word) {
+				if (idxOfPos < file.pos.size() && count == file.pos[idxOfPos]) {
+					TextColor(14);
+					cout << word << " ";
+					TextColor(15);
+					count++;
+					idxOfPos++;
+				}
+				else{
+					cout << word << " ";
+					count++;
+				}
+			}
+			cout << "..." << endl;
+		}
+	}
+	in.close();
 }

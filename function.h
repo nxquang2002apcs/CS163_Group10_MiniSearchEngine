@@ -15,6 +15,11 @@ struct TrieNode {
 	bool isEndOfWord;		
 	vector<int> pos;
 };
+struct File {
+	string name;
+	vector<int> pos;
+	int score;
+};
 
 class searchEngine {
 public:
@@ -36,6 +41,11 @@ public:
 	void releaseTrie(TrieNode*& root);					//Quang
 	void match(vector<int>& vec1, vector<int>& vec2, int asterisk);	//Quang
 	pair<int,int> findAsterisk(string query);
+	void findRange(string query, double& low, double& high);	//Phat
+	void searchNumber_DFS(TrieNode* root, double low, double high, double num, int power, vector<int>& pos);
+	void Synonyms(string word, vector<string>& syno);
+	int countWord(string sen); 
+	void display(File file);
 };
 
 #endif // !_SEARCH_ENGINE_H_
