@@ -68,6 +68,14 @@ void deleteFile(ofstream& ofs, string path) {
 	ofs.close();
 }
 
+void updateHistory(string query, string path) {
+	ofstream fout;
+	fout.open(path, ios::app);
+	fout << "\n" << query;
+	fout.close();
+}
+
+
 
 
 
