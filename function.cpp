@@ -702,3 +702,127 @@ void searchEngine::display(File file) {
 	}
 	in.close();
 }
+
+//========================================Khanh ghi lai ham display=======================================================================
+
+bool searchEngine::checkAppear(const vector<string>& inQuery, string s)
+{
+	for (int i = 0; i < inQuery.size(); ++i)
+		if (s == inQuery[i])
+			return true;
+	return false;
+}
+
+void searchEngine::display(File file)
+{
+	if (file.score == 0 || file.pos.empty())
+		return;
+	ifstream in;
+	in.open(file.name);
+	if (!in.is_open())
+	{
+		cout << "Cannot open file!" << endl;
+		return;
+	}
+	vector<string> inQuery;
+	string sen, sen2, word;
+	int count = 1, idxOfPos = 0, totalLength = 0;
+	getline(in, sen, '.');	//title
+
+	int length = countWord(sen);
+	totalLength += length;
+	if (totalLength >= file.pos[idxOfPos])
+	{
+		stringstream sstream;
+		sstream << sen;
+		while (sstream >> word)
+		{
+			if (idxOfPos < file.pos.size() && count == file.pos[idxOfPos]) { // count la bien dem vi tri tu trong file
+				inQuery.push_back(word);
+				TextColor(14);
+				cout << word << " ";
+				TextColor(15);
+				idxOfPos++;  // la index cua vector pos
+			}
+			else cout << word << " ";
+			count++;
+		}
+	}
+	else {
+		cout << sen;
+		count += length;
+	}
+
+	int soCau = 0;
+
+	cout << endl << endl;
+	while (!in.eof() && idxOfPos < file.pos.size())
+	{ // Van con cai de in
+		getline(in, sen, '.');
+		while (isNumber(sen[sen.length() - 1]))
+		{
+			if (!in.eof())
+			{
+				getline(in, sen2, '.');
+				if (isNumber(sen2[0]))
+					sen = sen + "." + sen2;
+				else {
+					sen = sen + " " + sen2;
+				}
+			}
+		}
+		length = countWord(sen);
+		totalLength += length;
+		if (totalLength < file.pos[idxOfPos] || support(sen, file, idxOfPos, count, inQuery) == false)
+		{
+			count += length;
+			continue;
+		}
+
+		else  // else nay xay ra chinh la trong cau da co chu, va cau can duoc in
+		{
+			++soCau;
+			cout << "...";
+			stringstream sstream;
+			sstream << sen;
+			while (sstream >> word)
+			{
+				if (idxOfPos < file.pos.size() && count == file.pos[idxOfPos])
+				{
+					inQuery.push_back(word);
+					TextColor(14);
+					cout << word << " ";
+					TextColor(15);
+					count++;
+					idxOfPos++;
+				}
+				else
+				{
+					cout << word << " ";
+					count++;
+				}
+			}
+			cout << "..." << endl;
+		}
+		if (soCau == 3)
+			break;
+	}
+	in.close();
+}
+
+// Ham xu ly cau co 1 tu da xuat hien
+bool searchEngine::support(string sen, File file, int idxOfPos, int count, const vector<string>& inQuery)
+{
+	stringstream sstream;
+	sstream << sen;
+	string word;
+
+	while (sstream >> word)
+	{
+		if (idxOfPos < file.pos.size() && count == file.pos[idxOfPos])
+			if (checkAppear(inQuery, word) == false) // Chua xuat hien
+				return true;
+	}
+
+	return false;
+}
